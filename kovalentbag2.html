@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kovalent Bağ -2 </title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #ffffff;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .gif {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      cursor: pointer;
+      transition: transform 0.2s ease-out;
+      user-select: none;
+    }
+
+    .magnetic-front-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: black;  /* Front dot color */
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .magnetic {
+      visibility: visible;
+      animation: blink 0.1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <img id="gif1" src="https://i.hizliresim.com/emeeffc.gif" class="gif" />
+  <img id="gif2" src="https://i.hizliresim.com/emeeffc.gif" class="gif" />
+
+  <script>
+    const gif1 = document.getElementById('gif1');
+    const gif2 = document.getElementById('gif2');
+
+    // Helper function to calculate the distance between two elements
+    function getDistance(el1, el2) {
+      const rect1 = el1.getBoundingClientRect();
+      const rect2 = el2.getBoundingClientRect();
+      const dx = rect1.left - rect2.left;
+      const dy = rect1.top - rect2.top;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Function to move the GIFs toward each other when close enough
+    function moveGIFsTowardEachOther(movableGif, staticGif, distance) {
+      if (distance < 250 && distance > 50) {  // Increased range for pulling (2x)
+        const angle = Math.atan2(
+          staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+          staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+        );
+
+        // Move the movable GIF closer to the static GIF
+        movableGif.style.left = `${parseFloat(movableGif.style.left) + Math.cos(angle) * 2}px`; // Increased speed of movement (2x)
+        movableGif.style.top = `${parseFloat(movableGif.style.top) + Math.sin(angle) * 2}px`;
+
+        // Move the static GIF towards the movable GIF
+        staticGif.style.left = `${parseFloat(staticGif.style.left) - Math.cos(angle) * 4}px`;
+        staticGif.style.top = `${parseFloat(staticGif.style.top) - Math.sin(angle) * 4}px`;
+      }
+    }
+
+    // Function to handle the repelling effect when GIFs get too close
+    function repelGIFs(movableGif, staticGif, distance) {
+      if (distance < 50) {  // Lower threshold for repel effect (2x closer)
+        const angle = Math.atan2(
+          staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+          staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+        );
+
+        // Repel the movable GIF from the static GIF
+        movableGif.style.left = `${parseFloat(movableGif.style.left) - Math.cos(angle) * 3}px`; // Increased repel strength (2x)
+        movableGif.style.top = `${parseFloat(movableGif.style.top) - Math.sin(angle) * 3}px`;
+
+        // Repel the static GIF from the movable GIF
+        staticGif.style.left = `${parseFloat(staticGif.style.left) + Math.cos(angle) * 3}px`;
+        staticGif.style.top = `${parseFloat(staticGif.style.top) + Math.sin(angle) * 3}px`;
+      }
+    }
+
+    // Create magnetic effect dots
+    function createMagneticDots() {
+      const dot1 = document.createElement('div');
+      const dot2 = document.createElement('div');
+      const frontDot1 = document.createElement('div');
+      const frontDot2 = document.createElement('div');
+      dot1.classList.add('magnetic-dots');
+      dot2.classList.add('magnetic-dots');
+      frontDot1.classList.add('magnetic-front-dot');
+      frontDot2.classList.add('magnetic-front-dot');
+      document.body.appendChild(dot1);
+      document.body.appendChild(dot2);
+      document.body.appendChild(frontDot1);
+      document.body.appendChild(frontDot2);
+      return { dot1, dot2, frontDot1, frontDot2 };
+    }
+
+    function applyMagnetism(movableGif, staticGif, dot1, dot2, frontDot1, frontDot2) {
+      let offsetX = 0;
+      let offsetY = 0;
+      let isDragging = false;
+
+      movableGif.addEventListener('mousedown', (event) => {
+        isDragging = true;
+        offsetX = event.clientX - movableGif.getBoundingClientRect().left;
+        offsetY = event.clientY - movableGif.getBoundingClientRect().top;
+
+        function moveHandler(e) {
+          movableGif.style.left = `${e.clientX - offsetX}px`;
+          movableGif.style.top = `${e.clientY - offsetY}px`;
+
+          const distance = getDistance(movableGif, staticGif);
+
+          // When the GIFs are close enough (for pull effect), show the magnetic effect (dots)
+          if (distance < 400 && distance > 40) {  // Increased range for showing magnetic effect (2x)
+            const angle = Math.atan2(
+              staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+              staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+            );
+
+            const movableGifRect = movableGif.getBoundingClientRect();
+            const staticGifRect = staticGif.getBoundingClientRect();
+
+            // Update red dot's position (for movable GIF)
+            dot1.style.left = `${movableGifRect.left + movableGifRect.width / 2 + Math.cos(angle) * 40}px`;
+            dot1.style.top = `${movableGifRect.top + movableGifRect.height / 2 + Math.sin(angle) * 40}px`;
+            dot1.style.visibility = 'visible';
+            dot1.classList.add('magnetic');
+
+            // Update blue dot's position (for movable GIF)
+            frontDot1.style.left = `${movableGifRect.left + movableGifRect.width / 2 + Math.cos(angle) * 28}px`;
+            frontDot1.style.top = `${movableGifRect.top + movableGifRect.height / 2 + Math.sin(angle) * 28}px`;
+            frontDot1.style.visibility = 'visible';
+            frontDot1.classList.add('magnetic');
+
+            // Update red dot's position (for static GIF)
+            dot2.style.left = `${staticGifRect.left + staticGifRect.width / 2 - Math.cos(angle) * 40}px`;
+            dot2.style.top = `${staticGifRect.top + staticGifRect.height / 2 - Math.sin(angle) * 40}px`;
+            dot2.style.visibility = 'visible';
+            dot2.classList.add('magnetic');
+
+            // Update blue dot's position (for static GIF)
+            frontDot2.style.left = `${staticGifRect.left + staticGifRect.width / 2 - Math.cos(angle) * 28}px`;
+            frontDot2.style.top = `${staticGifRect.top + staticGifRect.height / 2 - Math.sin(angle) * 28}px`;
+            frontDot2.style.visibility = 'visible';
+            frontDot2.classList.add('magnetic');
+
+            // Move the GIFs toward each other
+            moveGIFsTowardEachOther(movableGif, staticGif, distance);
+          } else if (distance < 50) {  // When too close, show magnetic effect even during repel
+            // Repelling the GIFs while keeping dots visible
+            const angle = Math.atan2(
+              staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+              staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+            );
+
+            // Repel GIFs while keeping dots visible
+            dot1.style.visibility = 'visible';
+            frontDot1.style.visibility = 'visible';
+            dot2.style.visibility = 'visible';
+            frontDot2.style.visibility = 'visible';
+            
+            // Repel GIFs
+            repelGIFs(movableGif, staticGif, distance);
+
+            // Keep dots visible even during repel
+            dot1.classList.add('magnetic');
+            dot2.classList.add('magnetic');
+            frontDot1.classList.add('magnetic');
+            frontDot2.classList.add('magnetic');
+          } else {
+            // Hide the dots if the GIFs are too far apart
+            dot1.style.visibility = 'hidden';
+            dot2.style.visibility = 'hidden';
+            frontDot1.style.visibility = 'hidden';
+            frontDot2.style.visibility = 'hidden';
+            dot1.classList.remove('magnetic');
+            dot2.classList.remove('magnetic');
+            frontDot1.classList.remove('magnetic');
+            frontDot2.classList.remove('magnetic');
+          }
+        }
+
+        function stopHandler() {
+          isDragging = false;
+          document.removeEventListener('mousemove', moveHandler);
+          document.removeEventListener('mouseup', stopHandler);
+        }
+
+        document.addEventListener('mousemove', moveHandler);
+        document.addEventListener('mouseup', stopHandler);
+      });
+
+      // Prevent text selection during dragging
+      movableGif.addEventListener('dragstart', (e) => e.preventDefault());
+    }
+
+    // Initial positioning for both GIFs with margin applied
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const startLeft = (screenWidth - 100) / 2; // Center of the screen minus the width of the GIF
+    const startTop = (screenHeight - 100) / 2; // Center of the screen minus the height of the GIF
+
+    gif1.style.left = `${startLeft}px`;
+    gif1.style.top = `${startTop}px`;
+    gif2.style.left = `${startLeft + 220}px`; // Increased distance for margin effect (2x)
+    gif2.style.top = `${startTop}px`; // Same vertical alignment
+
+    // Create magnetic dots
+    const { dot1, dot2, frontDot1, frontDot2 } = createMagneticDots();
+
+    // Apply magnetism for both combinations
+    applyMagnetism(gif1, gif2, dot1, dot2, frontDot1, frontDot2);
+    applyMagnetism(gif2, gif1, dot1, dot2, frontDot1, frontDot2);
+  </script>
+</body>
+</html>
