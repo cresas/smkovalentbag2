@@ -87,9 +87,9 @@
     gif1.ondragstart = () => false;
 
     function calculateCurve(x) {
-        let baseY = 300; // Başlangıç yüksekliği
-        let flatLength = 100; // Düz gidiş (100 px)
-        let heightFactor = 30; // Yükselme yüksekliği (daha yayvan)
+        let baseY =-25; // Başlangıç yüksekliği
+        let flatLength = 268; // Düz gidiş (100 px)
+        let heightFactor = 5; // Yükselme yüksekliği (daha yayvan)
 
         // İlk 4 cm düz gidecek
         if (x > initialX - flatLength) {
@@ -98,7 +98,7 @@
 
         // Düz gidişten sonra yukarı yükselen eğri
         let normalizedX = x - (initialX - flatLength);
-        let y = baseY - heightFactor * (normalizedX / 100) * (normalizedX / 100); // Yayvan parabolik eğri
+        let y = baseY - heightFactor * (normalizedX / 18) * (normalizedX / 50); // Yayvan parabolik eğri
         return { x, y };
     }
 

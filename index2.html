@@ -24,12 +24,12 @@
             user-select: none;
         }
         #gif1 {
-            left: 650px; /* 600 px sağda olacak şekilde ayarladık */
+            left: 500px;
             bottom: 50px;
             cursor: grab;
         }
         #gif2 {
-            left: 50px; /* 600 px aralık için başlangıç konumu */
+            left: 200px;
             bottom: 50px;
         }
         .dot {
@@ -52,8 +52,8 @@
 <script>
     let gif1 = document.getElementById("gif1");
     let container = document.querySelector(".container");
-    let initialX = 650; // gif1'in başlangıç konumu
-    let minX = 50; // gif2'nin konumu
+    let initialX = 500;
+    let minX = 200;
     let isDragging = false;
 
     gif1.addEventListener("mousedown", (event) => {
@@ -63,9 +63,7 @@
         const onMouseMove = (event) => {
             if (!isDragging) return;
             let newX = event.clientX - shiftX - container.getBoundingClientRect().left;
-
-            // Mesafe kısıtlaması
-            if (newX >= minX + 100 && newX <= initialX) { // 100 px genişlik
+            if (newX >= minX && newX <= initialX) {
                 gif1.style.left = newX + "px";
                 
                 // Eğri boyunca noktaları oluştur
@@ -89,7 +87,7 @@
     function calculateCurve(x) {
         let baseY = 300; // Başlangıç yüksekliği
         let flatLength = 100; // Düz gidiş (100 px)
-        let heightFactor = 30; // Yükselme yüksekliği (daha yayvan)
+        let heightFactor = 50; // Yükselme yüksekliği
 
         // İlk 4 cm düz gidecek
         if (x > initialX - flatLength) {
@@ -98,7 +96,7 @@
 
         // Düz gidişten sonra yukarı yükselen eğri
         let normalizedX = x - (initialX - flatLength);
-        let y = baseY - heightFactor * (normalizedX / 100) * (normalizedX / 100); // Yayvan parabolik eğri
+        let y = baseY - heightFactor * (normalizedX / 100) * (normalizedX / 100); // Parabolik eğri
         return { x, y };
     }
 
@@ -106,7 +104,7 @@
         let dot = document.createElement("div");
         dot.className = "dot";
         dot.style.left = x + "px";
-        dot.style.top = (y - 6) + "px"; // GIF'in üstünde görünmesi için
+        dot.style.top = y + "px"; // GIF'in üstünde
         container.appendChild(dot);
     }
 </script>
