@@ -1,115 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Covalent Bond Simulation</title>
-    <style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=0.8 ">
+  <title>Kovalent Bağ #3</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #ffffff;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    
         body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: white;
-        }
-        .container {
-            position: relative;
-            width: 800px;
-            height: 400px;
-        }
-        .atom {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            user-select: none;
-        }
-        #gif1 {
-            left: 650px; /* 600 px sağda olacak şekilde ayarladık */
-            bottom: 50px;
-            cursor: grab;
-        }
-        #gif2 {
-            left: 50px; /* 600 px aralık için başlangıç konumu */
-            bottom: 50px;
-        }
-        .dot {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: black;
-            border-radius: 50%;
-            z-index: 10; /* Noktaların üstte görünmesi için */
-        }
-    </style>
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #ffffff;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+      perspective: 1000px; /* 3D effect */
+  
+      transform-origin: center; /* Ölçekleme merkezini ayarlamak için */
+    }
+    .gif {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      cursor: pointer;
+      user-select: none;
+  
+    }
+
+    .magnetic-front-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: black;  /* Front dot color */
+      visibility: hidden;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+
+    .magnetic {
+      visibility: visible;
+      animation: blink 0.1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0; }
+      50% { opacity: 0.5; }
+      100% { opacity: 0; }
+    }
+
+
+  </style>
 </head>
 <body>
+  <img id="gif1" src="gif1.gif" class="gif" />
+  <img id="gif2" src="gif2.gif" class="gif" />
+ <script>
+    function makeDraggable(gif) {
+      let offsetX = 0, offsetY = 0;
+      let isDragging = false;
 
-<div class="container">
-    <img id="gif2" class="atom" src="https://smkovalentbagx.vercel.app/gif2.gif">
-    <img id="gif1" class="atom" src="https://smkovalentbagx.vercel.app/gif1.gif">
-</div>
-
-<script>
-    let gif1 = document.getElementById("gif1");
-    let container = document.querySelector(".container");
-    let initialX = 650; // gif1'in başlangıç konumu
-    let minX = 50; // gif2'nin konumu
-    let isDragging = false;
-
-    gif1.addEventListener("mousedown", (event) => {
+      function startDrag(event) {
         isDragging = true;
-        let shiftX = event.clientX - gif1.getBoundingClientRect().left;
+        let clientX = event.touches ? event.touches[0].clientX : event.clientX;
+        let clientY = event.touches ? event.touches[0].clientY : event.clientY;
 
-        const onMouseMove = (event) => {
-            if (!isDragging) return;
-            let newX = event.clientX - shiftX - container.getBoundingClientRect().left;
+        offsetX = clientX - gif.getBoundingClientRect().left;
+        offsetY = clientY - gif.getBoundingClientRect().top;
 
-            // Mesafe kısıtlaması
-            if (newX >= minX + 100 && newX <= initialX) { // 100 px genişlik
-                gif1.style.left = newX + "px";
-                
-                // Eğri boyunca noktaları oluştur
-                let { x, y } = calculateCurve(newX);
-                createDot(x, y);
-            }
-        };
+        gif.style.cursor = "grabbing";
+        event.preventDefault();
+      }
 
-        const onMouseUp = () => {
-            isDragging = false;
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-        };
+      function drag(event) {
+        if (!isDragging) return;
 
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", onMouseUp);
-    });
+        let clientX = event.touches ? event.touches[0].clientX : event.clientX;
+        let clientY = event.touches ? event.touches[0].clientY : event.clientY;
 
-    gif1.ondragstart = () => false;
+        gif.style.left = `${clientX - offsetX}px`;
+        gif.style.top = `${clientY - offsetY}px`;
 
-    function calculateCurve(x) {
-        let baseY = 300; // Başlangıç yüksekliği
-        let flatLength = 100; // Düz gidiş (100 px)
-        let heightFactor = 30; // Yükselme yüksekliği (daha yayvan)
+        event.preventDefault();
+      }
 
-        // İlk 4 cm düz gidecek
-        if (x > initialX - flatLength) {
-            return { x, y: baseY }; // Düz gidiş
+      function stopDrag() {
+        isDragging = false;
+        gif.style.cursor = "grab";
+      }
+
+      gif.addEventListener("mousedown", startDrag);
+      gif.addEventListener("mousemove", drag);
+      gif.addEventListener("mouseup", stopDrag);
+      gif.addEventListener("mouseleave", stopDrag);
+
+      gif.addEventListener("touchstart", startDrag, { passive: false });
+      gif.addEventListener("touchmove", drag, { passive: false });
+      gif.addEventListener("touchend", stopDrag);
+      gif.addEventListener("touchcancel", stopDrag);
+    }
+
+    document.querySelectorAll('.gif').forEach(makeDraggable);
+  </script>
+  <script>
+    const gif1 = document.getElementById('gif1');
+    const gif2 = document.getElementById('gif2');
+
+    let attractor1, attractor2;
+
+    // Set initial positions of GIFs
+    gif1.style.left = '100px';
+    gif1.style.top = '200px';
+    gif2.style.left = '400px';
+    gif2.style.top = '200px';
+
+    // Helper function to calculate the distance between two elements
+    function getDistance(el1, el2) {
+      const rect1 = el1.getBoundingClientRect();
+      const rect2 = el2.getBoundingClientRect();
+      const dx = rect1.left - rect2.left;
+      const dy = rect1.top - rect2.top;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Function to create attracting effect
+    function createAttractingEffect() {
+      attractor1 = document.createElement('div');
+      attractor2 = document.createElement('div');
+      attractor1.classList.add('attracting-effect');
+      attractor2.classList.add('attracting-effect');
+      document.body.appendChild(attractor1);
+      document.body.appendChild(attractor2);
+    }
+
+    // Create magnetic effect dots
+    function createMagneticDots() {
+      const dot1 = document.createElement('div');
+      const dot2 = document.createElement('div');
+      const frontDot1 = document.createElement('div');
+      const frontDot2 = document.createElement('div');
+      dot1.classList.add('magnetic-front-dot');
+      dot2.classList.add('magnetic-front-dot');
+      document.body.appendChild(dot1);
+      document.body.appendChild(dot2);
+      document.body.appendChild(frontDot1);
+      document.body.appendChild(frontDot2);
+      return { dot1, dot2, frontDot1, frontDot2 };
+    }
+
+    function applyMagnetism(movableGif, staticGif, dot1, dot2, frontDot1, frontDot2) {
+      let offsetX = 0;
+      let offsetY = 0;
+      let isDragging = false;
+
+      movableGif.addEventListener('mousedown', (event) => {
+        isDragging = true;
+        offsetX = event.clientX - movableGif.getBoundingClientRect().left;
+        offsetY = event.clientY - movableGif.getBoundingClientRect().top;
+
+        function moveHandler(e) {
+          movableGif.style.left = `${e.clientX - offsetX}px`;
+          movableGif.style.top = `${e.clientY - offsetY}px`;
+
+          const distance = getDistance(movableGif, staticGif);
+
+          // When the GIFs are close enough (for pull effect), show the magnetic effect (dots)
+          if (distance < 400 && distance > 40) {
+            const angle = Math.atan2(
+              staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+              staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+            );
+
+            const movableGifRect = movableGif.getBoundingClientRect();
+            const staticGifRect = staticGif.getBoundingClientRect();
+
+            // NOKTALARIN POZİSYONLARI
+            dot1.style.left = `${movableGifRect.left + movableGifRect.width / 2 + Math.cos(angle) * 40}px`;
+            dot1.style.top = `${movableGifRect.top + movableGifRect.height / 2 + Math.sin(angle) * 40}px`;
+            dot1.style.visibility = 'visible';
+            dot1.classList.add('magnetic');
+
+            frontDot1.style.left = `${movableGifRect.left + movableGifRect.width / 2 + Math.cos(angle) * 28}px`;
+            frontDot1.style.top = `${movableGifRect.top + movableGifRect.height / 2 + Math.sin(angle) * 28}px`;
+            frontDot1.style.visibility = 'visible';
+            frontDot1.classList.add('magnetic');
+
+            dot2.style.left = `${staticGifRect.left + staticGifRect.width / 2 - Math.cos(angle) * 40}px`;
+            dot2.style.top = `${staticGifRect.top + staticGifRect.height / 2 - Math.sin(angle) * 40}px`;
+            dot2.style.visibility = 'visible';
+            dot2.classList.add('magnetic');
+
+            frontDot2.style.left = `${staticGifRect.left + staticGifRect.width / 2 - Math.cos(angle) * 28}px`;
+            frontDot2.style.top = `${staticGifRect.top + staticGifRect.height / 2 - Math.sin(angle) * 28}px`;
+            frontDot2.style.visibility = 'visible';
+            frontDot2.classList.add('magnetic');
+
+            // HAREKET HALİ
+            moveGIFsTowardEachOther(movableGif, staticGif, distance);
+          } else if (distance < 50) {
+            // Repelling the GIFs while keeping dots visible
+            const angle = Math.atan2(
+              staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+              staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+            );
+
+            // REPEL EFFECTİ
+            dot1.style.visibility = 'visible';
+            frontDot1.style.visibility = 'visible';
+            dot2.style.visibility = 'visible';
+            frontDot2.style.visibility = 'visible';
+
+            // Repel GİF
+            repelGIFs(movableGif, staticGif, distance);
+
+            // Keep dots visible even during repel
+            dot1.classList.add('magnetic');
+            dot2.classList.add('magnetic');
+            frontDot1.classList.add('magnetic');
+            frontDot2.classList.add('magnetic');
+          } else {
+            // GIF'ler birbirinden çok uzaktaysa noktaları gizle
+            dot1.style.visibility = 'hidden';
+            dot2.style.visibility = 'hidden';
+            frontDot1.style.visibility = 'hidden';
+            frontDot2.style.visibility = 'hidden';
+            dot1.classList.remove('magnetic');
+            dot2.classList.remove('magnetic');
+            frontDot1.classList.remove('magnetic');
+            frontDot2.classList.remove('magnetic');
+          }
         }
 
-        // Düz gidişten sonra yukarı yükselen eğri
-        let normalizedX = x - (initialX - flatLength);
-        let y = baseY - heightFactor * (normalizedX / 100) * (normalizedX / 100); // Yayvan parabolik eğri
-        return { x, y };
+        function stopHandler() {
+          isDragging = false;
+          document.removeEventListener('mousemove', moveHandler);
+          document.removeEventListener('mouseup', stopHandler);
+        }
+
+        document.addEventListener('mousemove', moveHandler);
+        document.addEventListener('mouseup', stopHandler);
+      });
+
+      // Prevent text selection during dragging
+      movableGif.addEventListener('dragstart', (e) => e.preventDefault());
     }
 
-    function createDot(x, y) {
-        let dot = document.createElement("div");
-        dot.className = "dot";
-        dot.style.left = x + "px";
-        dot.style.top = (y - 6) + "px"; // GIF'in üstünde görünmesi için
-        container.appendChild(dot);
-    }
-</script>
+    // Function to update the position of attracting effects
+    function updateAttractingEffects(movableGif, staticGif) {
+      const distance = getDistance(movableGif, staticGif);
 
+      // Show effects only if within a certain distance
+      if (distance < 200 && distance > 50) {
+        const angle = Math.atan2(
+          staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+          staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+        );
+
+        const movableGifRect = movableGif.getBoundingClientRect();
+        const staticGifRect = staticGif.getBoundingClientRect();
+
+        // Move and show attracting effects
+        attractor1.style.left = `${movableGifRect.left + movableGifRect.width / 2 + Math.cos(angle) * 20}px`;
+        attractor1.style.top = `${movableGifRect.top + movableGifRect.height / 2 + Math.sin(angle) * 20}px`;
+        attractor1.style.opacity = 1;
+
+        attractor2.style.left = `${staticGifRect.left + staticGifRect.width / 2 - Math.cos(angle) * 20}px`;
+        attractor2.style.top = `${staticGifRect.top + staticGifRect.height / 2 - Math.sin(angle) * 20}px`;
+        attractor2.style.opacity = 1;
+
+      } else {
+        // Hide effects immediately when outside the distance
+        attractor1.style.opacity = 0;  
+        attractor2.style.opacity = 0;  
+      }
+    }
+
+    // Function to move the GIFs toward each other when close enough (pulling effect)
+    function moveGIFsTowardEachOther(movableGif, staticGif, distance) {
+      const angle = Math.atan2(
+        staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+        staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+      );
+
+      if (distance < 250 && distance > 55) {
+        const speed = 5;
+        movableGif.style.left = `${parseFloat(movableGif.style.left) + Math.cos(angle) * speed}px`; 
+        movableGif.style.top = `${parseFloat(movableGif.style.top) + Math.sin(angle) * speed}px`;
+
+        staticGif.style.left = `${parseFloat(staticGif.style.left) - Math.cos(angle) * speed}px`;
+        staticGif.style.top = `${parseFloat(staticGif.style.top) - Math.sin(angle) * speed}px`;
+      }
+    }
+
+    // Function to apply repulsion effect
+    function applyRepulsion(movableGif, staticGif, distance) {
+      const angle = Math.atan2(
+        staticGif.getBoundingClientRect().top - movableGif.getBoundingClientRect().top,
+        staticGif.getBoundingClientRect().left - movableGif.getBoundingClientRect().left
+      );
+
+      if (distance < 50) {
+        const speed = 5;
+        movableGif.style.left = `${parseFloat(movableGif.style.left) - Math.cos(angle) * speed}px`; 
+        movableGif.style.top = `${parseFloat(movableGif.style.top) - Math.sin(angle) * speed}px`;
+
+        staticGif.style.left = `${parseFloat(staticGif.style.left) + Math.cos(angle) * speed}px`;
+        staticGif.style.top = `${parseFloat(staticGif.style.top) + Math.sin(angle) * speed}px`;
+      }
+    }
+
+    // Function to apply the attraction effect
+    function applyAttraction(movableGif, staticGif) {
+      let offsetX = 0;
+      let offsetY = 0;
+      let isDragging = false;
+
+      movableGif.addEventListener('mousedown', (event) => {
+        isDragging = true;
+        offsetX = event.clientX - movableGif.getBoundingClientRect().left;
+        offsetY = event.clientY - movableGif.getBoundingClientRect().top;
+
+        function moveHandler(e) {
+          movableGif.style.left = `${e.clientX - offsetX}px`;
+          movableGif.style.top = `${e.clientY - offsetY}px`;
+
+          updateAttractingEffects(movableGif, staticGif);
+        }
+
+        function stopHandler() {
+          isDragging = false;
+          document.removeEventListener('mousemove', moveHandler);
+          document.removeEventListener('mouseup', stopHandler);
+        }
+
+        document.addEventListener('mousemove', moveHandler);
+        document.addEventListener('mouseup', stopHandler);
+      });
+
+      movableGif.addEventListener('dragstart', (e) => e.preventDefault());
+
+      function updatePositions() {
+        if (!isDragging) {
+          const distance = getDistance(movableGif, staticGif);
+          if (distance < 50) {
+            applyRepulsion(movableGif, staticGif, distance);
+          } else if (distance < 250) {
+            moveGIFsTowardEachOther(movableGif, staticGif, distance);
+          }
+          updateAttractingEffects(movableGif, staticGif); // Ensure effects update continuously
+        }
+
+        // Update the rotation to always face each other
+        const angle = Math.atan2(
+          gif2.getBoundingClientRect().top - gif1.getBoundingClientRect().top,
+          gif2.getBoundingClientRect().left - gif1.getBoundingClientRect().left
+        );
+        gif1.style.transform = `rotate(${angle}rad)`;
+        gif2.style.transform = `rotate(${angle + Math.PI}rad)`; // Rotate 180 degrees for the second GIF
+
+        requestAnimationFrame(updatePositions);
+      }
+
+      updatePositions();
+    }
+
+    createAttractingEffect();
+    applyAttraction(gif1, gif2);
+    applyAttraction(gif2, gif1);
+
+    // Create magnetic dots
+    const { dot1, dot2, frontDot1, frontDot2 } = createMagneticDots();
+
+    // Apply magnetism for both combinations
+    applyMagnetism(gif1, gif2, dot1, dot2, frontDot1, frontDot2);
+    applyMagnetism(gif2, gif1, dot1, dot2, frontDot1, frontDot2);
+  </script>
 </body>
 </html>
